@@ -64,9 +64,8 @@ Returns a simple readiness payload for Railway.
 
 - The server binds to `0.0.0.0`
 - The server reads `process.env.PORT`
-- Use the standard Node deploy flow with:
-  - build command: `npm run build`
-  - start command: `npm start`
+- The repository includes a `Dockerfile` based on the official Playwright image so Chromium is available at runtime on Railway.
+- Railway should detect the `Dockerfile` automatically and build from it.
 
 ## Notes
 
