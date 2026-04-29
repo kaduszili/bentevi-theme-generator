@@ -6,8 +6,8 @@ Internal microservice that receives a website URL, captures a screenshot, extrac
 
 - Node.js
 - TypeScript
-- Fastify
-- Playwright (Chromium)
+- Fastify (local dev) / Vercel Functions (production)
+- `playwright-core` + `@sparticuz/chromium` (serverless) / `playwright` (local Chromium)
 - OpenAI `gpt-4o`
 
 ## Setup
@@ -58,14 +58,27 @@ Body:
 
 ### `GET /health`
 
-Returns a simple readiness payload for Railway.
+Returns a simple readiness payload.
 
-## Railway
+## Deployment (Vercel)
 
-- The server binds to `0.0.0.0`
-- The server reads `process.env.PORT`
-- The repository includes a `Dockerfile` based on the official Playwright image so Chromium is available at runtime on Railway.
-- Railway should detect the `Dockerfile` automatically and build from it.
+Both endpoints are also exposed as Vercel Functions under [api/](api/):
+
+- `GET /health` → `api/health.ts`
+- `POST /theme` → `api/theme.ts` (configured for `maxDuration: 120s`, `memory: 2048MB` in [vercel.json](vercel.json))
+
+The `/health` and `/theme` paths are mapped via rewrites in [vercel.json](vercel.json) so existing clients hitting `vision.bentevi.co/theme` keep working without an `/api/` prefix.
+
+Setup:
+
+1. `vercel link` to associate the repo with a Vercel project.
+2. In the Vercel dashboard set environment variables for Production and Preview:
+   - `API_KEY`
+   - `OPENAI_API_KEY`
+   - `AWS_LAMBDA_JS_RUNTIME=nodejs20.x` (read by `@sparticuz/chromium` at module-load; must be set in dashboard, not in code).
+3. Push the branch — Vercel auto-builds a preview. Promote to production via merge to `main`.
+
+Add a domain (e.g. `vision.bentevi.co`) in Project → Settings → Domains. The existing `/health` and `/theme` paths are preserved via rewrites in [vercel.json](vercel.json), so no client changes are required during the Railway → Vercel cutover.
 
 ## Notes
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/theme.ts": {
+      "maxDuration": 120,
+      "memory": 2048
+    }
+  },
+  "rewrites": [
+    { "source": "/theme", "destination": "/api/theme" },
+    { "source": "/health", "destination": "/api/health" }
+  ]
+}

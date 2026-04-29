@@ -1,15 +1,30 @@
-import { chromium } from "playwright";
+import type { LaunchOptions } from "playwright-core";
+import { chromium } from "playwright-core";
 import { discoverAssets } from "./asset-discovery";
 import { ScreenshotResult } from "../types/theme";
 
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
-export async function captureWebsite(url: string): Promise<ScreenshotResult> {
-  const browser = await chromium.launch({
+const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+
+async function getLaunchOptions(): Promise<LaunchOptions> {
+  if (isServerless) {
+    const sparticuz = (await import("@sparticuz/chromium")).default;
+    return {
+      args: sparticuz.args,
+      executablePath: await sparticuz.executablePath(),
+      headless: true,
+    };
+  }
+  return {
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
+  };
+}
+
+export async function captureWebsite(url: string): Promise<ScreenshotResult> {
+  const browser = await chromium.launch(await getLaunchOptions());
 
   try {
     const context = await browser.newContext({
